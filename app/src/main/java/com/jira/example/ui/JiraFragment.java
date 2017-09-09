@@ -10,6 +10,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jira.example.R;
+import com.jira.example.event.MessageEvent;
 
 import de.greenrobot.event.EventBus;
 
@@ -31,6 +32,10 @@ public abstract class JiraFragment extends RxOpiynFragment implements BaseView{
         if (!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
+    }
+
+    public void onEvent(MessageEvent event) {
+
     }
 
     @Override

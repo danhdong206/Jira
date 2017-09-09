@@ -3,6 +3,8 @@ package com.jira.example.dj;
 import android.content.Context;
 
 import com.jira.example.ForActivity;
+import com.jira.example.ui.ActiveSprintActivity;
+import com.jira.example.ui.InjectableActivity;
 import com.jira.example.ui.JiraActivity;
 
 import javax.inject.Named;
@@ -19,6 +21,8 @@ import rx.schedulers.Schedulers;
  */
 @Module(
         injects = {
+                InjectableActivity.class,
+                ActiveSprintActivity.class
         },
         addsTo = ApplicationModule.class,
         includes = InteractorModule.class,

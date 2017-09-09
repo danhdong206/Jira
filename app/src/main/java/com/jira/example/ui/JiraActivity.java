@@ -4,8 +4,11 @@ import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.widget.Toast;
 
+import com.jira.example.R;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
 import butterknife.ButterKnife;
@@ -36,6 +39,21 @@ public abstract class JiraActivity extends RxAppCompatActivity implements BaseVi
 
     private void bindViews() {
         ButterKnife.bind(this);
+    }
+
+    protected void replaceFragment(final int containerViewId, final Fragment fragment, final String TAG, final boolean addToBackStack) {
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+                fragmentTransaction.setCustomAnimations(R.anim.abc_fade_in, R.anim.abc_fade_out);
+                fragmentTransaction.replace(containerViewId, fragment, TAG);
+                if (addToBackStack) {
+                    fragmentTransaction.addToBackStack(TAG);
+                }
+                fragmentTransaction.commitAllowingStateLoss();
+            }
+        }, 0);
     }
 
     @Override
