@@ -5,24 +5,30 @@ import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.util.Pair;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jira.example.R;
 import com.jira.example.dj.ActiveSprintModule;
+import com.jira.example.model.Item;
 import com.jira.example.ui.InjectableFragment;
+import com.squareup.picasso.Picasso;
 import com.woxthebox.draglistview.BoardView;
 import com.woxthebox.draglistview.DragItem;
+import com.woxthebox.draglistview.DragItemAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.Bind;
+import butterknife.ButterKnife;
 
 /**
  * Created by admin on 9/9/17.
@@ -76,7 +82,7 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
         mBoardView.setSnapToColumnsWhenScrolling(true);
         mBoardView.setSnapToColumnWhenDragging(true);
         mBoardView.setSnapDragItemToTouch(true);
-        mBoardView.setCustomDragItem(new MyDragItem(getActivity(), R.layout.column_item));
+        mBoardView.setCustomDragItem(new MyDragItem(getActivity(), R.layout.row_card));
         mBoardView.setSnapToColumnInLandscape(false);
         mBoardView.setColumnSnapPosition(BoardView.ColumnSnapPosition.CENTER);
         mBoardView.setBoardListener(new BoardView.BoardListener() {
@@ -122,8 +128,6 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
         addColumnList();
         addColumnList();
         addColumnList();
-        addColumnList();
-        addColumnList();
     }
 
     @Override
@@ -132,18 +136,22 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
     }
 
     private void addColumnList() {
-        final ArrayList<Pair<Long, String>> mItemArray = new ArrayList<>();
-        int addItems = 15;
+        final ArrayList<Pair<Long, Item>> mItemArray = new ArrayList<>();
+        int addItems = 10;
         for (int i = 0; i < addItems; i++) {
-            long id = sCreatedItems++;
-            mItemArray.add(new Pair<>(id, "Item " + id));
+            String name = "Jira " + i;
+            String summary = "Review " + i;
+            int issueType = i % 3;
+            int priority = i % 3;
+            String epicLink = "Epic " + i;
+            mItemArray.add(new Pair<>(Long.valueOf(i), new Item(Long.valueOf(i), name, summary, issueType, priority, epicLink)));
         }
 
         final int column = mColumns;
-        final ItemAdapter listAdapter = new ItemAdapter(mItemArray, R.layout.column_item, R.id.item_layout, true);
-        final View header = View.inflate(getActivity(), R.layout.column_header, null);
-        ((TextView) header.findViewById(R.id.text)).setText("Column " + (mColumns + 1));
-        ((TextView) header.findViewById(R.id.item_count)).setText("" + addItems);
+        final ItemAdapter listAdapter = new ItemAdapter(getContext(), mItemArray, R.layout.row_card, R.id.item_layout, true);
+        final View header = View.inflate(getActivity(), R.layout.row_card_header, null);
+//        ((TextView) header.findViewById(R.id.text)).setText("Column " + (mColumns + 1));
+//        ((TextView) header.findViewById(R.id.item_count)).setText("" + addItems);
         header.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -163,22 +171,26 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
     }
 
     private static class MyDragItem extends DragItem {
-
+        Context context;
         MyDragItem(Context context, int layoutId) {
             super(context, layoutId);
+            this.context = context;
         }
 
         @Override
         public void onBindDragView(View clickedView, View dragView) {
-            CharSequence text = ((TextView) clickedView.findViewById(R.id.text)).getText();
-            ((TextView) dragView.findViewById(R.id.text)).setText(text);
+            Item item = (Item) clickedView.getTag();
+            bind(dragView, item);
+//            ViewHolder viewHolder = new ViewHolder(context, dragView);
+//            viewHolder.bind(item, -1);
+
             CardView dragCard = ((CardView) dragView.findViewById(R.id.card));
             CardView clickedCard = ((CardView) clickedView.findViewById(R.id.card));
 
             dragCard.setMaxCardElevation(40);
             dragCard.setCardElevation(clickedCard.getCardElevation());
             // I know the dragView is a FrameLayout and that is why I can use setForeground below api level 23
-            dragCard.setForeground(clickedView.getResources().getDrawable(R.drawable.card_view_drag_foreground));
+//            dragCard.setForeground(clickedView.getResources().getDrawable(R.drawable.card_view_drag_foreground));
         }
 
         @Override
@@ -214,6 +226,57 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
             anim.setInterpolator(new DecelerateInterpolator());
             anim.setDuration(ANIMATION_DURATION);
             anim.start();
+        }
+
+        public void bind(View rootView, Item item) {
+            ImageView imgAvatar = (ImageView) rootView.findViewById(R.id.img_avatar);
+            ImageView imgType = (ImageView) rootView.findViewById(R.id.img_type);
+            ImageView imgPriority = (ImageView) rootView.findViewById(R.id.img_priority);
+            TextView txtName = (TextView) rootView.findViewById(R.id.txt_name);
+            TextView txtSummary = (TextView) rootView.findViewById(R.id.txt_summary);
+            TextView txtLink = (TextView) rootView.findViewById(R.id.txt_link);
+            Picasso.with(context).load(R.drawable.ic_profile_holder)
+                    .placeholder(R.drawable.ic_profile_holder)
+//                    .transform(new CircleTransform())
+                    .into(imgAvatar);
+            switch (item.getIssueType().ordinal()){
+                case Item.ISSUE_TYPE_STORY:
+                    imgType.setImageResource(R.drawable.xml_ic_bookmark);
+                    imgType.setBackgroundResource(R.drawable.xml_bg_story);
+                    break;
+                case Item.ISSUE_TYPE_DEFECT:
+                    imgType.setImageResource(R.drawable.xml_ic_circle);
+                    imgType.setBackgroundResource(R.drawable.xml_bg_defect);
+                    break;
+                case Item.ISSUE_TYPE_TASK:
+                    imgType.setImageResource(R.drawable.xml_ic_tick);
+                    imgType.setBackgroundResource(R.drawable.xml_bg_task);
+                    break;
+            }
+
+            switch (item.getPriority().ordinal()){
+                case Item.MINOR_PRIORITY:
+                    imgPriority.setImageResource(R.drawable.xml_ic_arrow_down);
+                    imgPriority.setColorFilter(context.getResources().getColor(R.color.green));
+                    break;
+                case Item.MAJOR_PRIORITY:
+                    imgPriority.setImageResource(R.drawable.xml_ic_arrow_up);
+                    imgPriority.setColorFilter(context.getResources().getColor(R.color.red));
+                    break;
+                case Item.CRITICAL_PRIORITY:
+                    imgPriority.setColorFilter(context.getResources().getColor(R.color.red));
+                    imgPriority.setImageResource(R.drawable.xml_ic_arrow_up_expand);
+                    break;
+            }
+
+            txtName.setText(item.getName());
+            txtSummary.setText(item.getSummary());
+            txtLink.setText(item.getEpicLink());
+            if(TextUtils.isEmpty(item.getEpicLink())){
+                txtLink.setVisibility(View.GONE);
+            } else {
+                txtLink.setVisibility(View.VISIBLE);
+            }
         }
     }
 }
