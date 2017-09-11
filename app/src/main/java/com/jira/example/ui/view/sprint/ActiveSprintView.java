@@ -1,5 +1,6 @@
 package com.jira.example.ui.view.sprint;
 
+import com.jira.example.network.response.ItemResponse;
 import com.jira.example.ui.BaseView;
 
 /**
@@ -7,4 +8,5 @@ import com.jira.example.ui.BaseView;
  */
 
 public interface ActiveSprintView extends BaseView {
+    void showPage(ItemResponse itemResponse, String type);
 }

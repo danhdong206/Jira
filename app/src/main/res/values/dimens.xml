@@ -17,12 +17,4 @@
     <dimen name="radius_tiny_tiny">2dp</dimen>
     <dimen name="radius_tiny">4dp</dimen>
 
-    <dimen name="photo_offset">3dp</dimen>
-    <dimen name="topic_offset">8dp</dimen>
-
-    <dimen name="image_avatar_width">140dp</dimen>
-
-    <dimen name="context_menu_opiyn_width">301dp</dimen>
-    <dimen name="context_menu_opiyn_editor_width">201dp</dimen>
-    <dimen name="context_menu_comment_width">101dp</dimen>
 </resources>

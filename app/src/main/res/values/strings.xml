@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Jira</string>
+    <string name="loading">Loading...</string>
+    <string name="todo">%d TODO</string>
+    <string name="in_progress">%d IN PROGRESS</string>
+    <string name="done">%d DONE</string>
 </resources>

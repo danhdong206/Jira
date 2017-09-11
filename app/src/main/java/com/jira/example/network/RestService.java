@@ -1,6 +1,8 @@
 package com.jira.example.network;
 
 
+import com.jira.example.network.response.ItemResponse;
+
 import retrofit.http.Body;
 import retrofit.http.DELETE;
 import retrofit.http.Field;
@@ -17,5 +19,6 @@ import rx.Observable;
  */
 
 public interface RestService {
-
+    @GET("/sprint/active/{type}")
+    Observable<ItemResponse> getActiveSprint(@Path("type") String type);
 }

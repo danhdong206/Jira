@@ -28,7 +28,7 @@ public class ProgressBar extends android.widget.ProgressBar{
 
     private void init(){
         if (getIndeterminateDrawable() != null) {
-            getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.greyish_brown_50), android.graphics.PorterDuff.Mode.SRC_IN);
+            getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.grey), android.graphics.PorterDuff.Mode.SRC_IN);
         }
     }
 }

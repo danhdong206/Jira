@@ -5,4 +5,5 @@ package com.jira.example.ui.presenter.sprint;
  */
 
 public interface ActiveSprintPresenter {
+    void getActiveSprint(String type);
 }

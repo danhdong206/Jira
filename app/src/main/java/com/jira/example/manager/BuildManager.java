@@ -7,8 +7,8 @@ import com.jira.example.BuildConfig;
  */
 
 public class BuildManager {
-    private static final String STAGING_SERVICE_ENDPOINT = "";
-    private static final String PRODUCTION_SERVICE_ENDPOINT = "";
+    private static final String STAGING_SERVICE_ENDPOINT = "https://google.com/api/v1";
+    private static final String PRODUCTION_SERVICE_ENDPOINT = "https://google.com/api/v1";
 
     public static String getServiceEndpoint() {
         if(BuildConfig.DEBUG){

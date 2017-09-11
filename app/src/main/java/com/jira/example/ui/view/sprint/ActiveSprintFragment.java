@@ -18,7 +18,9 @@ import android.widget.Toast;
 import com.jira.example.R;
 import com.jira.example.dj.ActiveSprintModule;
 import com.jira.example.model.Item;
+import com.jira.example.network.response.ItemResponse;
 import com.jira.example.ui.InjectableFragment;
+import com.jira.example.ui.presenter.sprint.ActiveSprintPresenter;
 import com.squareup.picasso.Picasso;
 import com.woxthebox.draglistview.BoardView;
 import com.woxthebox.draglistview.DragItem;
@@ -26,6 +28,8 @@ import com.woxthebox.draglistview.DragItemAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.inject.Inject;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
@@ -36,8 +40,19 @@ import butterknife.ButterKnife;
 
 public class ActiveSprintFragment extends InjectableFragment implements ActiveSprintView{
     public static final String TAG = ActiveSprintFragment.class.getSimpleName();
+    public static final String TODO = "Todo";
+    public static final String IN_PROGRESS = "InProgress";
+    public static final String DONE = "Done";
+
+    public static final int COLUMN_TODO = 0;
+    public static final int COLUMN_IN_PROGRESS = 1;
+    public static final int COLUMN_DONE = 2;
+
     @Bind(R.id.board_view)
     BoardView mBoardView;
+
+    @Inject
+    ActiveSprintPresenter activeSprintPresenter;
 
     private static int sCreatedItems = 0;
     private int mColumns;
@@ -88,7 +103,7 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
         mBoardView.setBoardListener(new BoardView.BoardListener() {
             @Override
             public void onItemDragStarted(int column, int row) {
-                Toast.makeText(mBoardView.getContext(), "Start - column: " + column + " row: " + row, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(mBoardView.getContext(), "Start - column: " + column + " row: " + row, Toast.LENGTH_SHORT).show();
             }
 
             @Override
@@ -98,10 +113,8 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
 
             @Override
             public void onItemChangedColumn(int oldColumn, int newColumn) {
-//                TextView itemCount1 = (TextView) mBoardView.getHeaderView(oldColumn).findViewById(R.id.item_count);
-//                itemCount1.setText(String.valueOf(mBoardView.getAdapter(oldColumn).getItemCount()));
-//                TextView itemCount2 = (TextView) mBoardView.getHeaderView(newColumn).findViewById(R.id.item_count);
-//                itemCount2.setText(String.valueOf(mBoardView.getAdapter(newColumn).getItemCount()));
+                updateUIHeader(oldColumn);
+                updateUIHeader(newColumn);
             }
 
             @Override
@@ -125,9 +138,9 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
             }
         });
 
-        addColumnList();
-        addColumnList();
-        addColumnList();
+        activeSprintPresenter.getActiveSprint(TODO);
+        activeSprintPresenter.getActiveSprint(IN_PROGRESS);
+        activeSprintPresenter.getActiveSprint(DONE);
     }
 
     @Override
@@ -135,23 +148,34 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
 
     }
 
-    private void addColumnList() {
-        final ArrayList<Pair<Long, Item>> mItemArray = new ArrayList<>();
-        int addItems = 10;
-        for (int i = 0; i < addItems; i++) {
-            String name = "Jira " + i;
-            String summary = "Review " + i;
-            int issueType = i % 3;
-            int priority = i % 3;
-            String epicLink = "Epic " + i;
-            mItemArray.add(new Pair<>(Long.valueOf(i), new Item(Long.valueOf(i), name, summary, issueType, priority, epicLink)));
+    private void updateUIHeader(int column){
+        TextView txtHeader = (TextView) mBoardView.getHeaderView(column).findViewById(R.id.txt_header);
+        switch (column){
+            case COLUMN_TODO:
+                txtHeader.setText(getString(R.string.todo, mBoardView.getAdapter(column).getItemCount()));
+                break;
+            case COLUMN_IN_PROGRESS:
+                txtHeader.setText(getString(R.string.in_progress, mBoardView.getAdapter(column).getItemCount()));
+                break;
+            default:
+                txtHeader.setText(getString(R.string.done, mBoardView.getAdapter(column).getItemCount()));
+                break;
+        }
+    }
+
+    private void addColumnList(String type, ArrayList<Pair<Long, Item>> itemArray) {
+        final View header = View.inflate(getActivity(), R.layout.row_card_header, null);
+        TextView txtHeader = ((TextView) header.findViewById(R.id.txt_header));
+        if(type.equalsIgnoreCase(TODO)){
+            txtHeader.setText(getString(R.string.todo, itemArray.size()));
+        } else if(type.equalsIgnoreCase(IN_PROGRESS)){
+            txtHeader.setText(getString(R.string.in_progress, itemArray.size()));
+        } else {
+            txtHeader.setText(getString(R.string.done, itemArray.size()));
         }
 
         final int column = mColumns;
-        final ItemAdapter listAdapter = new ItemAdapter(getContext(), mItemArray, R.layout.row_card, R.id.item_layout, true);
-        final View header = View.inflate(getActivity(), R.layout.row_card_header, null);
-//        ((TextView) header.findViewById(R.id.text)).setText("Column " + (mColumns + 1));
-//        ((TextView) header.findViewById(R.id.item_count)).setText("" + addItems);
+        final ItemAdapter listAdapter = new ItemAdapter(getContext(), itemArray, R.layout.row_card, R.id.item_layout, true);
         header.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -162,12 +186,44 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
                 //mBoardView.removeItem(column, 0);
                 //mBoardView.moveItem(0, 0, 1, 3, false);
                 //mBoardView.replaceItem(0, 0, item1, true);
-                ((TextView) header.findViewById(R.id.item_count)).setText(String.valueOf(mItemArray.size()));
+//                ((TextView) header.findViewById(R.id.item_count)).setText(String.valueOf(mItemArray.size()));
             }
         });
 
         mBoardView.addColumnList(listAdapter, header, false);
         mColumns++;
+    }
+
+    private ArrayList<Pair<Long, Item>> createSampleData(){
+        final ArrayList<Pair<Long, Item>> itemArray = new ArrayList<>();
+        int addItems = 10;
+        for (int i = 0; i < addItems; i++) {
+            String name = "Jira " + i;
+            String summary = "Review " + i;
+            int issueType = i % 3;
+            int priority = i % 3;
+            String epicLink = "Epic " + i;
+            itemArray.add(new Pair<>(Long.valueOf(i), new Item(Long.valueOf(i), name, summary, issueType, priority, epicLink)));
+        }
+
+        return itemArray;
+    }
+
+    @Override
+    public void showPage(ItemResponse itemResponse, String type) {
+        if(type.equalsIgnoreCase(TODO)){
+            if(itemResponse == null){
+                addColumnList(type, createSampleData());
+            }
+        } else if(type.equalsIgnoreCase(IN_PROGRESS)){
+            if(itemResponse == null){
+                addColumnList(type, createSampleData());
+            }
+        } else {
+            if(itemResponse == null){
+                addColumnList(type, createSampleData());
+            }
+        }
     }
 
     private static class MyDragItem extends DragItem {
@@ -181,8 +237,6 @@ public class ActiveSprintFragment extends InjectableFragment implements ActiveSp
         public void onBindDragView(View clickedView, View dragView) {
             Item item = (Item) clickedView.getTag();
             bind(dragView, item);
-//            ViewHolder viewHolder = new ViewHolder(context, dragView);
-//            viewHolder.bind(item, -1);
 
             CardView dragCard = ((CardView) dragView.findViewById(R.id.card));
             CardView clickedCard = ((CardView) clickedView.findViewById(R.id.card));

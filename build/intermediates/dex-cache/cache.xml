@@ -16,7 +16,7 @@
         jumboMode="true"
         optimize="true"
         revision="25.0.3"
-        sha1="8f6e768b140fecb19e0e9799b982590bad700e5d">
+        sha1="209e3fc43f1e3238211240d0c01c9c7f5aec38c3">
         <dex dex="/Volumes/DATA/Demo/Jira/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_ae1fbe2277b620bef442814d6e75719b6f689b86/classes.dex" />
     </item>
 
